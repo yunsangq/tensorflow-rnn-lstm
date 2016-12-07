@@ -1,17 +1,28 @@
-import tensorflow as tf
 import os
 import collections
+import numpy as np
+import nltk
+import itertools
+import csv
 
 
 def _read_words(filename):
+    """
     with tf.gfile.GFile(filename, "r") as f:
         return f.read().decode("utf-8").replace(",,,,,,,,,,,,,,,,,,,,,,,,,", "").split()
+    """
+    with open(filename, 'rb') as f:
+        reader = csv.reader(f, skipinitialspace=True)
+        reader.next()
+        sentences = itertools.chain(*[nltk.sent_tokenize(x[0].decode('utf-8').lower()) for x in reader])
+        sentences = ["%s" % x for x in sentences]
+
 
 
 def _build_vocab(filename):
-    _data = _read_words(filename)
+    data = _read_words(filename)
 
-    counter = collections.Counter(_data)
+    counter = collections.Counter(data)
     count_pairs = sorted(counter.items(), key=lambda x: (-x[1], x[0]))
 
     words, _ = list(zip(*count_pairs))
@@ -30,28 +41,18 @@ def raw_data(data_path=None):
     word_to_id = _build_vocab(train_path)
     train_data = _file_to_word_ids(train_path, word_to_id)
     vocabulary = len(word_to_id)
-    return train_data, vocabulary
+    return np.array(train_data), vocabulary
 
 
-def producer(raw_data, batch_size, num_steps, name=None):
-    with tf.name_scope(name, "Producer", [raw_data, batch_size, num_steps]):
-        raw_data = tf.convert_to_tensor(raw_data, name="raw_data", dtype=tf.int32)
+def create_batches(raw_data, num_batches, batch_size, seq_length):
+    raw_data = raw_data[:num_batches*batch_size*seq_length]
+    xdata = raw_data
+    ydata = np.copy(raw_data)
 
-        data_len = tf.size(raw_data)
-        batch_len = data_len // batch_size
-        data = tf.reshape(raw_data[0 : batch_size * batch_len],
-                      [batch_size, batch_len])
+    ydata[:-1] = xdata[1:]
+    ydata[-1] = xdata[0]
+    x_batches = np.split(xdata.reshape(batch_size, -1), num_batches, 1)
+    y_batches = np.split(ydata.reshape(batch_size, -1), num_batches, 1)
+    return x_batches, y_batches
 
-        epoch_size = (batch_len - 1) // num_steps
-        assertion = tf.assert_positive(epoch_size,
-        message="epoch_size == 0, decrease batch_size or num_steps")
 
-    with tf.control_dependencies([assertion]):
-        epoch_size = tf.identity(epoch_size, name="epoch_size")
-
-        i = tf.train.range_input_producer(epoch_size, shuffle=False).dequeue()
-        x = tf.strided_slice(data, [0, i * num_steps],
-                         [batch_size, (i + 1) * num_steps])
-        y = tf.strided_slice(data, [0, i * num_steps + 1],
-                         [batch_size, (i + 1) * num_steps + 1])
-    return x, y
