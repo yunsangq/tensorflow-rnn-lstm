@@ -2,21 +2,12 @@ import os
 import collections
 import numpy as np
 import nltk
-import itertools
-import csv
+import tensorflow as tf
 
 
 def _read_words(filename):
-    """
     with tf.gfile.GFile(filename, "r") as f:
-        return f.read().decode("utf-8").replace(",,,,,,,,,,,,,,,,,,,,,,,,,", "").split()
-    """
-    with open(filename, 'rb') as f:
-        reader = csv.reader(f, skipinitialspace=True)
-        reader.next()
-        sentences = itertools.chain(*[nltk.sent_tokenize(x[0].decode('utf-8').lower()) for x in reader])
-        sentences = ["%s" % x for x in sentences]
-
+        return nltk.word_tokenize(f.read().decode("utf-8").replace(",,,,,,,,,,,,,,,,,,,,,,,,,", ""))
 
 
 def _build_vocab(filename):
@@ -27,7 +18,7 @@ def _build_vocab(filename):
 
     words, _ = list(zip(*count_pairs))
     word_to_id = dict(zip(words, range(len(words))))
-    return word_to_id
+    return word_to_id, words
 
 
 def _file_to_word_ids(filename, word_to_id):
@@ -38,10 +29,10 @@ def _file_to_word_ids(filename, word_to_id):
 def raw_data(data_path=None):
     train_path = os.path.join(data_path, "reddit_comments_15000.csv")
 
-    word_to_id = _build_vocab(train_path)
+    word_to_id, words = _build_vocab(train_path)
     train_data = _file_to_word_ids(train_path, word_to_id)
-    vocabulary = len(word_to_id)
-    return np.array(train_data), vocabulary
+    vocab_size = len(word_to_id)
+    return np.array(train_data), word_to_id, words, vocab_size
 
 
 def create_batches(raw_data, num_batches, batch_size, seq_length):
