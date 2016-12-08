@@ -16,7 +16,9 @@ def main():
     parser.add_argument('--rnn_size', type=int, default=256,
                         help='size of RNN hidden state')
     parser.add_argument('--keep_prob', type=int, default=0.5,
-                        help='size of RNN hidden state')
+                        help='size of dropout')
+    parser.add_argument('--vocab_cut', type=int, default=2000000,
+                        help='size of vocab')
     parser.add_argument('--num_layers', type=int, default=2,
                         help='number of layers in the RNN')
     parser.add_argument('--model', type=str, default='lstm',
@@ -25,7 +27,7 @@ def main():
                         help='minibatch size')
     parser.add_argument('--seq_length', type=int, default=25,
                         help='RNN sequence length')
-    parser.add_argument('--num_epochs', type=int, default=10,
+    parser.add_argument('--num_epochs', type=int, default=20,
                         help='number of epochs')
     parser.add_argument('--save_every', type=int, default=1000,
                         help='save frequency')
@@ -45,7 +47,7 @@ def main():
                             """)
     args = parser.parse_args()
 
-    raw_data = reader.raw_data(args.data_dir)
+    raw_data = reader.raw_data(args.vocab_cut, args.data_dir)
     train_data, vocab, words, vocab_size = raw_data
     args.vocab_size = vocab_size
 
