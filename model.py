@@ -10,7 +10,13 @@ class Model():
             args.seq_length = 1
             args.keep_prob = 1.0
 
-        cell_fn = tf.nn.rnn_cell.BasicRNNCell
+        if args.model == 'rnn':
+            cell_fn = tf.nn.rnn_cell.BasicRNNCell
+        elif args.model == 'lstm':
+            cell_fn = tf.nn.rnn_cell.BasicLSTMCell
+        else:
+            raise Exception("model type not supported: {}".format(args.model))
+
         cell = cell_fn(args.rnn_size)
 
         if args.keep_prob < 1:

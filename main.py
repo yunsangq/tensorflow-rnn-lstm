@@ -17,17 +17,17 @@ def main():
                         help='size of RNN hidden state')
     parser.add_argument('--keep_prob', type=int, default=0.5,
                         help='size of dropout')
-    parser.add_argument('--vocab_cut', type=int, default=2000000,
+    parser.add_argument('--vocab_cut', type=int, default=40000,
                         help='size of vocab')
     parser.add_argument('--num_layers', type=int, default=2,
                         help='number of layers in the RNN')
-    parser.add_argument('--model', type=str, default='lstm',
+    parser.add_argument('--model', type=str, default='rnn',
                         help='rnn, gru, or lstm')
     parser.add_argument('--batch_size', type=int, default=50,
                         help='minibatch size')
     parser.add_argument('--seq_length', type=int, default=25,
                         help='RNN sequence length')
-    parser.add_argument('--num_epochs', type=int, default=20,
+    parser.add_argument('--num_epochs', type=int, default=30,
                         help='number of epochs')
     parser.add_argument('--save_every', type=int, default=1000,
                         help='save frequency')
