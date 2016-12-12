@@ -10,7 +10,7 @@ from six.moves import cPickle
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_dir', type=str, default='./',
-                        help='data directory containing input.txt')
+                        help='data directory containing input')
     parser.add_argument('--save_dir', type=str, default='save',
                         help='directory to store checkpointed models')
     parser.add_argument('--rnn_size', type=int, default=256,
@@ -33,10 +33,6 @@ def main():
                         help='save frequency')
     parser.add_argument('--grad_clip', type=float, default=5.,
                         help='clip gradients at this value')
-    parser.add_argument('--learning_rate', type=float, default=0.002,
-                        help='learning rate')
-    parser.add_argument('--decay_rate', type=float, default=0.97,
-                        help='decay rate for rmsprop')
     parser.add_argument('--init_from', type=str, default=None,
                         help="""continue training from saved model at this path. Path must contain files saved by previous training process:
                                 'config.pkl'        : configuration;
