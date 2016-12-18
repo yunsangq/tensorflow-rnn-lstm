@@ -42,8 +42,8 @@ class Model():
             prev = tf.matmul(prev, softmax_w) + softmax_b
             prev_symbol = tf.stop_gradient(tf.argmax(prev, 1))
             return tf.nn.embedding_lookup(embedding, prev_symbol)
-
         outputs, last_state = tf.nn.seq2seq.rnn_decoder(inputs, self.initial_state, cell, loop_function=loop if infer else None, scope="rnn")
+
         output = tf.reshape(tf.concat(1, outputs), [-1, args.rnn_size])
         self.logits = tf.matmul(output, softmax_w) + softmax_b
         self.probs = tf.nn.softmax(self.logits)
@@ -53,12 +53,8 @@ class Model():
                                                       args.vocab_size)
         self.cost = tf.reduce_sum(loss) / args.batch_size / args.seq_length
         self.final_state = last_state
-        self.lr = tf.Variable(0.0, trainable=False)
-        tvars = tf.trainable_variables()
-        grads, _ = tf.clip_by_global_norm(tf.gradients(self.cost, tvars),
-                                          args.grad_clip)
-        optimizer = tf.train.AdamOptimizer(self.lr)
-        self.train_op = optimizer.apply_gradients(zip(grads, tvars))
+        optimizer = tf.train.AdamOptimizer()
+        self.train_op = optimizer.minimize(self.cost)
 
     def sample(self, sess, words, vocab, num=200, prime='first all', sampling_type=1):
         state = sess.run(self.cell.zero_state(1, tf.float32))
@@ -88,11 +84,6 @@ class Model():
 
             if sampling_type == 0:
                 sample = np.argmax(p)
-            elif sampling_type == 2:
-                if word == '\n':
-                    sample = weighted_pick(p)
-                else:
-                    sample = np.argmax(p)
             else:  # sampling_type == 1 default:
                 sample = weighted_pick(p)
 
